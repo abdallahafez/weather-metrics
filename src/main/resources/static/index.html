@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Weather — Enter City</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #6dd5fa, #2980b9);
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 30px;
+            border-radius: 20px;
+            width: 360px;
+            margin: auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            transition: 0.3s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.03);
+        }
+
+        .temp {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .desc {
+            font-size: 22px;
+            text-transform: capitalize;
+        }
+
+        input#cityInput {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: none;
+            width: 220px;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            background: #f1c40f;
+            color: #000;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #ffe066;
+        }
+
+        #more { margin-top: 12px; font-size: 14px; }
+        #error { margin-top: 10px; color: #ffdddd; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>🌤 City Weather </h1>
+
+    <div class="card" id="weather-card">
+        <input id="cityInput" type="text" placeholder="Enter city name (e.g. Cairo)" value="Cairo" />
+        <div>
+            <button id="loadBtn">Load Weather</button>
+        </div>
+
+        <p class="temp">-- °C</p>
+        <p class="desc">Click the button to load</p>
+        <p id="more"></p>
+        <p id="error" aria-live="polite"></p>
+    </div>
+
+    <script>
+        const apiBase = "http://192.168.1.10:8080/api/weather/";
+
+        function setLoading(isLoading) {
+            const btn = document.getElementById('loadBtn');
+            btn.disabled = isLoading;
+            btn.innerText = isLoading ? 'Loading...' : 'Load Weather';
+        }
+
+        function showError(message) {
+            document.getElementById('error').innerText = message || '';
+        }
+
+        async function loadWeather() {
+            showError('');
+            const cityInput = document.getElementById('cityInput');
+            const city = cityInput.value.trim();
+
+            if (!city) {
+                showError('Please enter a city name.');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                // encodeURIComponent to safely put city into URL
+                const res = await fetch(apiBase + encodeURIComponent(city));
+
+                // Check HTTP status first
+                if (!res.ok) {
+                    throw new Error('Server returned ' + res.status + ' ' + res.statusText);
+                }
+
+                // parse JSON body
+                const data = await res.json();
+
+                // update DOM
+                document.querySelector('.temp').innerText = (data.main && data.main.temp != null)
+                    ? data.main.temp + '°C' : '-- °C';
+
+                document.querySelector('.desc').innerText = (data.weather && data.weather[0] && data.weather[0].description)
+                    ? data.weather[0].description : 'No description';
+
+                document.getElementById('more').innerHTML =
+                    (data.main && data.main.humidity != null ? ('Humidity: ' + data.main.humidity + '%<br>') : '') +
+                    (data.main && data.main.pressure != null ? ('Pressure: ' + data.main.pressure + ' hPa<br>') : '') +
+                    (data.wind && data.wind.speed != null ? ('Wind: ' + data.wind.speed + ' m/s') : '');
+
+            } catch (err) {
+                console.error(err);
+                document.querySelector('.desc').innerText = 'Error loading weather ❌';
+                showError(err.message || 'Network or server error');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // wire events
+        document.getElementById('loadBtn').addEventListener('click', loadWeather);
+
+        // allow Enter to submit
+        document.getElementById('cityInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') loadWeather();
+        });
+    </script>
+
+</body>
+</html>

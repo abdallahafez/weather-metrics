@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cairo Weather</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #6dd5fa, #2980b9);
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 30px;
+            border-radius: 20px;
+            width: 350px;
+            margin: auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            transition: 0.3s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .temp {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .desc {
+            font-size: 22px;
+            text-transform: capitalize;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            background: #f1c40f;
+            color: #000;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #ffe066;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌤 Cairo Weather</h1>
+
+    <div class="card" id="weather-card">
+        <p class="temp">-- °C</p>   
+        <p class="desc">Click the button to load</p>
+        <p id="more"></p>
+        <button onclick="loadWeather()">Load Weather</button>
+    </div>
+
+    <script>
+        function loadWeather() {
+            fetch("http://192.168.1.10:8080/api/weather/Cairo")
+                .then(res => res.json())
+                .then(data => {
+                    document.querySelector(".temp").innerText = data.main.temp + "°C";
+                    document.querySelector(".desc").innerText = data.weather[0].description;
+
+                    document.getElementById("more").innerHTML =
+                        "Humidity: " + data.main.humidity + "%<br>" +
+                        "Pressure: " + data.main.pressure + " hPa<br>" +
+                        "Wind: " + data.wind.speed + " m/s";
+                })
+                .catch(err => {
+                    document.querySelector(".desc").innerText =
+                        "Error loading weather ❌";
+                });
+        }
+    </script>
+
+</body>
+</html>
