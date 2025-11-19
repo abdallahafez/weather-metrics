@@ -68,7 +68,7 @@ pipeline {
             steps {
                script {
                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-                            sh "docker build -t abdallahafez92/weather-app:latest ."
+                            sh "docker build -t abdallahafez92/weather-app:v2 ."
                     }
                }
             }
@@ -76,7 +76,7 @@ pipeline {
         
         stage('Docker Image Scan') {
             steps {
-                sh "trivy image --scanners vuln --timeout 10m --format table -o trivy-image-report.html abdallahafez92/weather-app:latest"
+                sh "trivy image --scanners vuln --timeout 10m --format table -o trivy-image-report.html abdallahafez92/weather-app:v2"
             }
         }
         
@@ -84,7 +84,7 @@ pipeline {
             steps {
                script {
                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-                            sh "docker push abdallahafez92/weather-app:latest"
+                            sh "docker push abdallahafez92/weather-app:v2"
                     }
                }
             }
